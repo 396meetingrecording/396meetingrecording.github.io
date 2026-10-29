@@ -42,6 +42,10 @@
     padding: 8px 12px; font-size: 13px; color: var(--ink-2);
   }
   .icon-btn:hover { color: var(--ink); }
+  .header-actions { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+  .header-actions .icon-btn { text-align: center; white-space: nowrap; }
+  .howto { text-decoration: none; font-weight: 700; letter-spacing: .06em; font-size: 12px; }
+  header { align-items: flex-start; }
 
   /* ---------- stage ---------- */
   #stage {
@@ -267,7 +271,10 @@
 
 <header>
   <div class="logo"><b>●</b> 396 MEETING RECORDING</div>
-  <button class="icon-btn" id="btn-settings">⚙︎ 설정</button>
+  <div class="header-actions">
+    <button class="icon-btn" id="btn-settings">⚙︎ 설정</button>
+    <a class="icon-btn howto" href="how-to.html">HOW TO</a>
+  </div>
 </header>
 
 <!-- ================= STAGE ================= -->
@@ -422,6 +429,7 @@
       요약은 Google Gemini 무료 API를 사용해요. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서
       무료 API 키를 발급받아 붙여넣어 주세요. 키는 이 브라우저에만 저장됩니다.
     </p>
+    <p style="margin-top:-8px">처음이라면 <a href="how-to.html#api" target="_blank" rel="noopener">API 키 발급 방법 (HOW TO)</a>을 차근차근 따라 해보세요.</p>
     <label for="set-key">Gemini API 키</label>
     <input id="set-key" type="password" placeholder="AIza..." autocomplete="off">
     <label for="set-model">모델</label>
