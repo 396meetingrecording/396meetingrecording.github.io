@@ -871,7 +871,7 @@ function geminiError(res, data) {
     e.message = '현재 접속한 지역에서는 Gemini 무료 API를 쓸 수 없어요. VPN을 쓰고 있다면 꺼주세요.';
   } else if (res.status >= 500) {
     e.code = 'SERVER';
-    e.message = 'Google 서버가 잠시 바빠요. 잠시 후 다시 시도해주세요.';
+    e.message = 'Google 서버가 잠시 바빠요. 1~2분 뒤 다시 시도해주세요.' + (msg ? ` (${res.status}: ${msg})` : ` (${res.status})`);
   }
   return e;
 }
@@ -914,16 +914,22 @@ async function callGemini(body, key = settings.key) {
       continue;
     }
     tried.add(model);
-    try {
-      const data = await geminiFetch(`/models/${encodeURIComponent(model)}:generateContent`, key, body);
-      if (settings.model !== model) { settings.model = model; store(LS.settings, settings); }
-      return { data, model };
-    } catch (e) {
-      if (e.code !== 'MODEL' && e.code !== 'QUOTA') throw e;
-      if (!lastErr || e.code === 'QUOTA') lastErr = e;
+    // 서버가 바쁘면(503 등) 같은 모델로 잠깐 쉬었다 재시도 후, 다른 모델로 넘어감
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const data = await geminiFetch(`/models/${encodeURIComponent(model)}:generateContent`, key, body);
+        if (settings.model !== model) { settings.model = model; store(LS.settings, settings); }
+        return { data, model };
+      } catch (e) {
+        if (e.code !== 'MODEL' && e.code !== 'QUOTA' && e.code !== 'SERVER') throw e;
+        if (!lastErr || e.code !== 'MODEL') lastErr = e;
+        if (e.code !== 'SERVER' || attempt === 2) break;
+        await sleep(1500 * (attempt + 1));
+      }
     }
   }
-  throw lastErr?.code === 'QUOTA' ? lastErr : new Error('이 키로 쓸 수 있는 Gemini 모델을 찾지 못했어요. AI Studio에서 키를 새로 만들어 보세요.');
+  if (lastErr && lastErr.code !== 'MODEL') throw lastErr;
+  throw new Error('이 키로 쓸 수 있는 Gemini 모델을 찾지 못했어요. AI Studio에서 키를 새로 만들어 보세요.');
 }
 
 async function summarize(text) {
@@ -1229,11 +1235,11 @@ $('#set-test').addEventListener('click', async () => {
   msg.className = 'set-msg';
   if (!key) { msg.classList.add('err'); msg.textContent = 'API 키를 먼저 붙여넣어 주세요.'; return; }
   const b = $('#set-test');
-  b.disabled = true; msg.textContent = '확인하는 중…';
+  b.disabled = true; msg.textContent = '확인하는 중… (서버가 바쁘면 다른 모델로 자동 재시도해서 최대 30초쯤 걸려요)';
   const prevModel = settings.model;
   settings.model = $('#set-model').value.trim();
   try {
-    const { model } = await callGemini({ contents: [{ role: 'user', parts: [{ text: '"OK" 한 단어로만 답해줘.' }] }], generationConfig: { maxOutputTokens: 10 } }, key);
+    const { model } = await callGemini({ contents: [{ role: 'user', parts: [{ text: '"OK" 한 단어로만 답해줘.' }] }] }, key);
     $('#set-model').value = model;
     msg.classList.add('ok');
     msg.textContent = `✓ 연결됐어요! (사용 모델: ${model}) 저장을 눌러주세요.`;
