@@ -19,15 +19,19 @@
     --bean: #c98a4b;
     --bean-dark: #8a5528;
     --leaf: #7fb94a;
+    /* Apple · Notion 스타일: 시스템 서체 우선, Windows는 Pretendard */
+    --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", "Malgun Gothic", sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-family: var(--font);
+    font-size: 15px; font-weight: 400; letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
   }
+  input, textarea, button { font-family: inherit; letter-spacing: inherit; }
   button { font-family: inherit; cursor: pointer; }
 
   /* ---------- header ---------- */
@@ -35,16 +39,16 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 20px 28px;
   }
-  .logo { font-weight: 800; letter-spacing: .08em; font-size: 15px; }
+  .logo { font-weight: 600; letter-spacing: .04em; font-size: 14px; }
   .logo b { color: var(--rec); }
   .icon-btn {
     border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
-    padding: 8px 12px; font-size: 13px; color: var(--ink-2);
+    padding: 8px 12px; font-size: 13px; font-weight: 500; color: var(--ink-2); line-height: 1.3;
   }
   .icon-btn:hover { color: var(--ink); }
   .header-actions { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
   .header-actions .icon-btn { text-align: center; white-space: nowrap; }
-  .howto { text-decoration: none; font-weight: 700; letter-spacing: .06em; font-size: 12px; }
+  .howto { text-decoration: none; }
   header { align-items: flex-start; }
 
   /* ---------- stage ---------- */
@@ -54,11 +58,11 @@
     padding: 0 16px 60px; text-align: center;
   }
   #mascot { width: 300px; height: 300px; max-width: 80vw; }
-  .name { font-weight: 700; font-size: 18px; margin-top: 4px; }
+  .name { font-weight: 600; font-size: 17px; letter-spacing: .02em; margin-top: 4px; }
   .status { color: var(--ink-2); font-size: 14px; margin-top: 6px; min-height: 20px; }
   .timer {
-    font-variant-numeric: tabular-nums; font-size: 34px; font-weight: 700;
-    margin-top: 14px; display: none; letter-spacing: .02em;
+    font-variant-numeric: tabular-nums; font-size: 32px; font-weight: 600;
+    margin-top: 14px; display: none; letter-spacing: 0;
   }
   .timer .dot {
     display: inline-block; width: 12px; height: 12px; border-radius: 50%;
@@ -71,7 +75,7 @@
 
   .main-btn {
     margin-top: 28px; border: 0; border-radius: 999px;
-    padding: 18px 44px; font-size: 16px; font-weight: 800; letter-spacing: .1em;
+    padding: 17px 42px; font-size: 15px; font-weight: 600; letter-spacing: .06em;
     background: var(--accent); color: #fff;
     box-shadow: 0 8px 24px rgba(43,38,34,.18);
     transition: transform .15s, background .2s;
@@ -91,7 +95,7 @@
     margin-top: 18px; color: var(--rec); font-size: 14px; max-width: 520px; line-height: 1.5;
   }
   .participants { margin-top: 22px; width: min(460px, 100%); text-align: left; }
-  .participants label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px; letter-spacing: .02em; }
+  .participants label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
   .chips {
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
@@ -100,21 +104,21 @@
   .chips:focus-within { border-color: var(--ink-3); }
   .chip {
     display: inline-flex; align-items: center; gap: 4px;
-    background: #f1efec; border-radius: 999px; padding: 6px 8px 6px 12px; font-size: 14px; font-weight: 600;
+    background: #f1efec; border-radius: 999px; padding: 6px 8px 6px 12px; font-size: 14px; font-weight: 500;
   }
   .chip button { border: 0; background: none; color: var(--ink-3); font-size: 15px; line-height: 1; padding: 0 2px; }
   .chip button:hover { color: var(--rec); }
   .chips input { flex: 1; min-width: 140px; border: 0; outline: none; font-family: inherit; font-size: 15px; padding: 6px 4px; background: transparent; color: var(--ink); }
   .p-hint { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
   .attendees { font-size: 14px; color: var(--ink-2); margin-top: 6px; outline: none; }
-  .attendees b { color: var(--ink); font-weight: 600; }
+  .attendees b { color: var(--ink); font-weight: 500; }
   .restore {
     margin-top: 18px; font-size: 13px; color: var(--ink-2);
   }
   .restore button { border: 0; background: none; text-decoration: underline; color: var(--ink); font-size: 13px; }
 
   /* ---------- processing ---------- */
-  .processing-text { font-size: 20px; font-weight: 700; margin-top: 10px; }
+  .processing-text { font-size: 18px; font-weight: 600; margin-top: 10px; }
   .processing-text span { display: inline-block; animation: hop 1.2s infinite; }
   .processing-text span:nth-child(2) { animation-delay: .1s; }
   .processing-text span:nth-child(3) { animation-delay: .2s; }
@@ -127,12 +131,12 @@
   #result { display: none; padding: 8px 16px 80px; }
   .doc-wrap { max-width: 860px; margin: 0 auto; }
   .toolbar { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 18px; }
-  .toolbar .primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .toolbar .primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
   .doc-title {
-    font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 28px;
+    font-size: 36px; font-weight: 700; letter-spacing: -.025em; line-height: 1.25; margin: 0 0 28px;
     outline: none;
   }
-  .doc-title .when { color: var(--ink-3); font-weight: 700; }
+  .doc-title .when { color: var(--ink-3); font-weight: 600; }
   .card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
     overflow: hidden;
@@ -142,16 +146,16 @@
     border-bottom: 1px solid var(--line);
   }
   .card-head svg { flex: none; margin-top: 4px; }
-  .meeting-title { font-size: 26px; font-weight: 700; line-height: 1.35; outline: none; flex: 1; }
+  .meeting-title { font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1.35; outline: none; flex: 1; }
   .tabs { display: flex; gap: 6px; padding: 18px 22px 0; }
   .tab {
     border: 0; background: none; padding: 10px 18px; border-radius: 999px;
     font-size: 15px; color: var(--ink-2); display: flex; align-items: center; gap: 6px;
   }
-  .tab.active { background: #f1efec; color: var(--ink); font-weight: 600; }
-  .panel { display: none; padding: 18px 30px 34px; outline: none; min-height: 240px; line-height: 1.75; font-size: 17px; }
+  .tab.active { background: #f1efec; color: var(--ink); font-weight: 500; }
+  .panel { display: none; padding: 18px 30px 34px; outline: none; min-height: 240px; line-height: 1.7; font-size: 16px; }
   .panel.active { display: block; }
-  .panel h2 { font-size: 22px; font-weight: 700; margin: 26px 0 14px; }
+  .panel h2 { font-size: 20px; font-weight: 600; letter-spacing: -.015em; margin: 26px 0 12px; }
   .panel h2:first-child { margin-top: 6px; }
   .panel ul { margin: 0 0 8px; padding-left: 26px; }
   .panel li { margin: 6px 0; padding-left: 4px; }
@@ -171,9 +175,9 @@
     box-shadow: 0 24px 60px rgba(0,0,0,.2);
     max-height: calc(100vh - 32px); overflow-y: auto;
   }
-  .modal h3 { margin: 0 0 6px; font-size: 18px; }
+  .modal h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
   .modal p { margin: 0 0 16px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
-  .modal label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+  .modal label { display: block; font-size: 13px; font-weight: 500; margin: 14px 0 6px; }
   .modal input, .modal textarea {
     width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
     font-family: inherit; font-size: 14px;
@@ -217,30 +221,26 @@
   @keyframes rollShadowR { 40%, 56% { transform: translateX(88px); } }
 
   #mascot .glasses { opacity: 0; transform: translateY(-14px); transition: opacity .6s, transform .6s; }
-  #mascot .desk { opacity: 0; transform: translateY(16px); transition: opacity .6s, transform .6s; }
+  #mascot .pen-g { opacity: 0; transform: translateY(14px); transition: opacity .6s, transform .6s; }
   #mascot .thinking { opacity: 0; transition: opacity .3s; }
 
-  #mascot.writing .glasses, #mascot.writing .desk { opacity: 1; transform: none; }
+  #mascot.writing .glasses, #mascot.writing .pen-g { opacity: 1; transform: none; }
   #mascot.writing .body-g { animation: lean 4s ease-in-out infinite; }
   @keyframes lean { 0%,100% { transform: rotate(1.5deg); } 50% { transform: rotate(3deg) translateY(2px); } }
-  #mascot.writing .pencil { animation: scribble 4.4s ease-in-out infinite; }
+  /* 볼펜 끝으로 천천히 한 줄씩 적는 움직임 */
+  #mascot.writing .pen { animation: scribble 5.2s ease-in-out infinite; }
   @keyframes scribble {
-    0%   { transform: translate(0,0) rotate(0); }
-    10%  { transform: translate(6px,-3px) rotate(-4deg); }
-    20%  { transform: translate(12px,1px) rotate(2deg); }
-    30%  { transform: translate(18px,-3px) rotate(-4deg); }
-    40%  { transform: translate(24px,1px) rotate(2deg); }
-    50%  { transform: translate(30px,-2px) rotate(-3deg); }
-    60%  { transform: translate(4px,10px) rotate(0); }
-    70%  { transform: translate(12px,8px) rotate(-4deg); }
-    80%  { transform: translate(20px,11px) rotate(2deg); }
-    90%  { transform: translate(28px,8px) rotate(-4deg); }
-    100% { transform: translate(0,0) rotate(0); }
+    0%   { transform: translate(-10px,0) rotate(0); }
+    12%  { transform: translate(-5px,-2px) rotate(-3deg); }
+    24%  { transform: translate(0,1px) rotate(1deg); }
+    36%  { transform: translate(5px,-2px) rotate(-3deg); }
+    48%  { transform: translate(10px,1px) rotate(1deg); }
+    56%  { transform: translate(12px,-1px) rotate(-1deg); }
+    66%  { transform: translate(-8px,5px) rotate(0); }
+    76%  { transform: translate(-2px,4px) rotate(-3deg); }
+    88%  { transform: translate(5px,6px) rotate(1deg); }
+    100% { transform: translate(-10px,0) rotate(0); }
   }
-  #mascot .ink { stroke-dasharray: 44; stroke-dashoffset: 44; }
-  #mascot.writing .ink1 { animation: ink 8.8s linear infinite; }
-  #mascot.writing .ink2 { animation: ink 8.8s linear infinite 4.4s; }
-  @keyframes ink { 0% { stroke-dashoffset: 44; } 45%,90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
   #mascot.writing .brow { opacity: 1; }
   #mascot .brow { opacity: 0; transition: opacity .3s; }
 
@@ -254,16 +254,17 @@
   @media (max-width: 600px) {
     header { padding: 16px; }
     .doc-title { font-size: 28px; }
+    .main-btn { padding: 16px 36px; }
     .meeting-title { font-size: 20px; }
     .panel { padding: 14px 18px 26px; font-size: 16px; }
     .tab { padding: 8px 12px; font-size: 14px; }
   }
 
   /* PDF export */
-  .pdf-root { background: #fff; padding: 8px 4px; font-family: "Pretendard", sans-serif; color: #1f1d1b; }
+  .pdf-root { background: #fff; padding: 8px 4px; font-family: var(--font); color: #1f1d1b; }
   .pdf-root .card { border-radius: 14px; }
   .pdf-root .panel { display: block !important; min-height: 0; }
-  .pdf-root .pdf-label { font-size: 13px; font-weight: 700; color: #a8a29e; letter-spacing: .08em; padding: 18px 30px 0; }
+  .pdf-root .pdf-label { font-size: 12px; font-weight: 600; color: #a8a29e; letter-spacing: .04em; padding: 18px 30px 0; }
   .pdf-root li, .pdf-root h2 { page-break-inside: avoid; }
 </style>
 </head>
@@ -281,11 +282,21 @@
 <section id="stage">
   <svg id="mascot" viewBox="0 0 300 300" aria-label="GIROGI">
     <defs>
-      <radialGradient id="ballGrad" cx="38%" cy="32%" r="75%">
-        <stop offset="0" stop-color="#ff8a5c"/>
-        <stop offset=".55" stop-color="#ff5a36"/>
-        <stop offset="1" stop-color="#e0401f"/>
+      <!-- 광택 없이 가장자리만 살짝 어두운 무광 볼륨 -->
+      <radialGradient id="ballGrad" cx="50%" cy="46%" r="58%">
+        <stop offset="0" stop-color="#ff6b47"/>
+        <stop offset=".75" stop-color="#ff5a36"/>
+        <stop offset="1" stop-color="#e8452a"/>
       </radialGradient>
+      <!-- 복슬복슬: 가장자리를 털처럼 흩뜨리고, 표면에 잔털 결을 얹음 -->
+      <filter id="fur" x="-12%" y="-12%" width="124%" height="124%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="4" seed="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" result="fuzzy"/>
+        <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="2" seed="11" result="grain"/>
+        <feColorMatrix in="grain" type="saturate" values="0" result="gray"/>
+        <feComposite in="gray" in2="fuzzy" operator="in" result="grainIn"/>
+        <feBlend in="grainIn" in2="fuzzy" mode="soft-light"/>
+      </filter>
     </defs>
 
     <!-- shadow -->
@@ -296,12 +307,7 @@
     <g class="roller">
       <g class="body-g">
         <!-- round body -->
-        <circle cx="150" cy="160" r="104" fill="url(#ballGrad)"/>
-        <ellipse cx="112" cy="104" rx="30" ry="16" fill="#fff" opacity=".16" transform="rotate(-28 112 104)"/>
-
-        <!-- cheeks -->
-        <ellipse cx="96" cy="190" rx="14" ry="8" fill="#ffb0a0" opacity=".5"/>
-        <ellipse cx="204" cy="190" rx="14" ry="8" fill="#ffb0a0" opacity=".5"/>
+        <circle cx="150" cy="160" r="102" fill="url(#ballGrad)" filter="url(#fur)"/>
 
         <!-- brows (focus mode) -->
         <path class="brow" d="M106 121 L134 123" stroke="#1b1412" stroke-width="5" stroke-linecap="round"/>
@@ -334,23 +340,18 @@
       </g>
     </g>
 
-    <!-- desk: notepad + pencil -->
-    <g class="desk">
-      <rect x="92" y="222" width="122" height="62" rx="8" fill="#fffdf6" stroke="#2b2622" stroke-width="3.5" transform="rotate(-4 153 253)"/>
-      <g transform="rotate(-4 153 253)">
-        <rect x="92" y="222" width="122" height="10" rx="4" fill="#e5484d"/>
-        <path class="ink ink1" d="M106 246 q6 -5 11 0 t11 0 t11 0 t11 0" stroke="#2b2622" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path class="ink ink2" d="M106 262 q6 -5 11 0 t11 0 t11 0 t11 0" stroke="#2b2622" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M106 276 L196 276" stroke="#e7e1d6" stroke-width="2"/>
-      </g>
-      <g class="pencil">
-        <g transform="translate(166 216) rotate(35)">
-          <rect x="-5" y="0" width="10" height="40" rx="2" fill="#f5c542" stroke="#2b2622" stroke-width="2.5"/>
-          <rect x="-5" y="-6" width="10" height="7" rx="2" fill="#f08a7a" stroke="#2b2622" stroke-width="2.5"/>
-          <path d="M-5 40 L0 51 L5 40 Z" fill="#f3d9b1" stroke="#2b2622" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- ballpoint pen (녹음 중) -->
+    <g class="pen-g">
+      <g class="pen">
+        <g transform="translate(226 218) rotate(30)">
+          <rect x="-4.5" y="-8" width="9" height="10" rx="4" fill="#2b2f3a"/>
+          <rect x="-4.5" y="0" width="9" height="40" rx="2" fill="#2b2f3a"/>
+          <rect x="-4.5" y="34" width="9" height="12" rx="1.5" fill="#4a5060"/>
+          <path d="M-4.5 46 L0 58 L4.5 46 Z" fill="#c9ccd2"/>
+          <rect x="3.5" y="-6" width="2.6" height="24" rx="1.3" fill="#9aa0aa"/>
         </g>
-        <!-- little arm -->
-        <ellipse cx="172" cy="226" rx="13" ry="10" fill="#ff5a36" stroke="#e0401f" stroke-width="2"/>
+        <!-- little paw -->
+        <circle cx="228" cy="226" r="14" fill="#ff7553" filter="url(#fur)"/>
       </g>
     </g>
 

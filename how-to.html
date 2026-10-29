@@ -25,31 +25,32 @@
   html { scroll-behavior: smooth; scroll-padding-top: 20px; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    -webkit-font-smoothing: antialiased; line-height: 1.7; font-size: 16px; overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", "Malgun Gothic", sans-serif;
+    letter-spacing: -0.01em; font-weight: 400;
+    -webkit-font-smoothing: antialiased; line-height: 1.7; font-size: 15px; overflow-x: hidden;
   }
   a { color: var(--ink); }
   header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 20px 28px;
   }
-  .logo { font-weight: 800; letter-spacing: .08em; font-size: 15px; text-decoration: none; }
+  .logo { font-weight: 600; letter-spacing: .04em; font-size: 14px; text-decoration: none; }
   .logo b { color: var(--rec); }
   .back {
     border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
-    padding: 8px 12px; font-size: 13px; color: var(--ink-2); text-decoration: none; white-space: nowrap;
+    padding: 8px 12px; font-size: 13px; font-weight: 500; color: var(--ink-2); text-decoration: none; white-space: nowrap;
   }
   .back:hover { color: var(--ink); }
 
   .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; max-width: 1080px; margin: 0 auto; padding: 12px 28px 100px; }
   nav.toc { position: sticky; top: 24px; align-self: start; font-size: 14px; }
-  nav.toc .label { font-size: 12px; font-weight: 700; color: var(--ink-3); letter-spacing: .08em; margin-bottom: 10px; }
+  nav.toc .label { font-size: 12px; font-weight: 600; color: var(--ink-3); letter-spacing: .04em; margin-bottom: 10px; }
   nav.toc a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; }
   nav.toc a:hover { background: #f1efec; color: var(--ink); }
 
   main { min-width: 0; }
-  .hero h1 { font-size: 44px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 12px; font-weight: 800; }
-  .hero p { color: var(--ink-2); margin: 0 0 8px; font-size: 17px; }
+  .hero h1 { font-size: 40px; line-height: 1.2; letter-spacing: -.025em; margin: 0 0 12px; font-weight: 700; }
+  .hero p { color: var(--ink-2); margin: 0 0 8px; font-size: 16px; }
   .quick {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 28px 0 8px;
   }
@@ -57,13 +58,13 @@
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
     font-size: 14px; color: var(--ink-2);
   }
-  .quick b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
-  .quick .n { display: inline-block; font-size: 12px; font-weight: 800; color: var(--rec); margin-bottom: 4px; }
+  .quick b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .quick .n { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--rec); margin-bottom: 4px; }
 
   section { margin-top: 64px; }
-  section > h2 { font-size: 28px; letter-spacing: -.01em; margin: 0 0 6px; font-weight: 800; }
+  section > h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 6px; font-weight: 700; }
   section > .sub { color: var(--ink-2); margin: 0 0 22px; }
-  h3 { font-size: 19px; margin: 30px 0 10px; }
+  h3 { font-size: 18px; font-weight: 600; letter-spacing: -.015em; margin: 30px 0 10px; }
 
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px 28px; }
   .card + .card { margin-top: 14px; }
@@ -74,12 +75,12 @@
   ol.steps > li::before {
     content: counter(s); position: absolute; left: 0; top: 0;
     width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff;
-    font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center;
   }
   ol.steps > li:not(:last-child)::after {
     content: ""; position: absolute; left: 15px; top: 38px; bottom: 6px; width: 2px; background: var(--line);
   }
-  ol.steps b.t { display: block; font-size: 17px; margin-bottom: 2px; }
+  ol.steps b.t { display: block; font-size: 16px; font-weight: 600; margin-bottom: 2px; }
   ol.steps p { margin: 4px 0; color: var(--ink-2); }
 
   ul.plain { margin: 6px 0; padding-left: 22px; }
@@ -94,15 +95,15 @@
     font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
     background: #f1efec; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px;
   }
-  .ui { display: inline-block; font-weight: 700; font-size: .9em; background: var(--accent); color: #fff; border-radius: 6px; padding: 0 8px; }
+  .ui { display: inline-block; font-weight: 500; font-size: .9em; background: var(--accent); color: #fff; border-radius: 6px; padding: 0 8px; }
 
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: 13px; color: var(--ink-3); font-weight: 700; letter-spacing: .04em; }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 600; letter-spacing: .04em; }
   tr:last-child td { border-bottom: 0; }
-  td:first-child { font-weight: 600; white-space: nowrap; }
-  .tag { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; }
+  td:first-child { font-weight: 500; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 8px; }
   .tag.req { background: #fde8e8; color: #b42318; }
   .tag.rec { background: #e8f3e6; color: var(--ok); }
 
@@ -111,7 +112,7 @@
 
   details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 20px; }
   details + details { margin-top: 10px; }
-  summary { cursor: pointer; font-weight: 700; padding: 12px 0; list-style: none; }
+  summary { cursor: pointer; font-weight: 600; padding: 12px 0; list-style: none; }
   summary::-webkit-details-marker { display: none; }
   summary::before { content: "＋"; color: var(--ink-3); margin-right: 10px; }
   details[open] summary::before { content: "－"; }
@@ -126,7 +127,7 @@
     nav.toc a { background: var(--surface); border: 1px solid var(--line); padding: 4px 10px; font-size: 13px; }
     .quick { grid-template-columns: 1fr 1fr; }
     .two { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 32px; }
+    .hero h1 { font-size: 30px; }
     header { padding: 16px; }
     .card { padding: 20px 18px; }
   }
