@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>396 MEETING RECORDING</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --ink: #1f1d1b;
+    --ink-2: #57534e;
+    --ink-3: #a8a29e;
+    --line: #ebe7e2;
+    --accent: #2b2622;
+    --rec: #e5484d;
+    --bean: #c98a4b;
+    --bean-dark: #8a5528;
+    --leaf: #7fb94a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px;
+  }
+  .logo { font-weight: 800; letter-spacing: .08em; font-size: 15px; }
+  .logo b { color: var(--rec); }
+  .icon-btn {
+    border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
+    padding: 8px 12px; font-size: 13px; color: var(--ink-2);
+  }
+  .icon-btn:hover { color: var(--ink); }
+
+  /* ---------- stage ---------- */
+  #stage {
+    min-height: calc(100vh - 80px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 16px 60px; text-align: center;
+  }
+  #mascot { width: 300px; height: 300px; max-width: 80vw; }
+  .name { font-weight: 700; font-size: 18px; margin-top: 4px; }
+  .status { color: var(--ink-2); font-size: 14px; margin-top: 6px; min-height: 20px; }
+  .timer {
+    font-variant-numeric: tabular-nums; font-size: 34px; font-weight: 700;
+    margin-top: 14px; display: none; letter-spacing: .02em;
+  }
+  .timer .dot {
+    display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--rec); margin-right: 10px; vertical-align: middle;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 50% { opacity: .25; } }
+  .meter { width: 180px; height: 4px; background: var(--line); border-radius: 4px; margin: 12px auto 0; overflow: hidden; display: none; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--leaf); transition: width .08s; }
+
+  .main-btn {
+    margin-top: 28px; border: 0; border-radius: 999px;
+    padding: 18px 44px; font-size: 16px; font-weight: 800; letter-spacing: .1em;
+    background: var(--accent); color: #fff;
+    box-shadow: 0 8px 24px rgba(43,38,34,.18);
+    transition: transform .15s, background .2s;
+  }
+  .main-btn:hover { transform: translateY(-2px); }
+  .main-btn.finish { background: var(--rec); box-shadow: 0 8px 24px rgba(229,72,77,.28); }
+  .main-btn:disabled { opacity: .5; cursor: default; transform: none; }
+
+  .live {
+    margin-top: 26px; width: min(640px, 100%);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 18px; text-align: left; font-size: 14px; line-height: 1.6; color: var(--ink-2);
+    max-height: 120px; overflow-y: auto; display: none;
+  }
+  .live .interim { color: var(--ink-3); }
+  .alert {
+    margin-top: 18px; color: var(--rec); font-size: 14px; max-width: 520px; line-height: 1.5;
+  }
+  .participants { margin-top: 22px; width: min(460px, 100%); text-align: left; }
+  .participants label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px; letter-spacing: .02em; }
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 8px 10px; min-height: 50px; cursor: text;
+  }
+  .chips:focus-within { border-color: var(--ink-3); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #f1efec; border-radius: 999px; padding: 6px 8px 6px 12px; font-size: 14px; font-weight: 600;
+  }
+  .chip button { border: 0; background: none; color: var(--ink-3); font-size: 15px; line-height: 1; padding: 0 2px; }
+  .chip button:hover { color: var(--rec); }
+  .chips input { flex: 1; min-width: 140px; border: 0; outline: none; font-family: inherit; font-size: 15px; padding: 6px 4px; background: transparent; color: var(--ink); }
+  .p-hint { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+  .attendees { font-size: 14px; color: var(--ink-2); margin-top: 6px; outline: none; }
+  .attendees b { color: var(--ink); font-weight: 600; }
+  .restore {
+    margin-top: 18px; font-size: 13px; color: var(--ink-2);
+  }
+  .restore button { border: 0; background: none; text-decoration: underline; color: var(--ink); font-size: 13px; }
+
+  /* ---------- processing ---------- */
+  .processing-text { font-size: 20px; font-weight: 700; margin-top: 10px; }
+  .processing-text span { display: inline-block; animation: hop 1.2s infinite; }
+  .processing-text span:nth-child(2) { animation-delay: .1s; }
+  .processing-text span:nth-child(3) { animation-delay: .2s; }
+  .processing-text span:nth-child(4) { animation-delay: .3s; }
+  .processing-text span:nth-child(5) { animation-delay: .4s; }
+  .processing-text span:nth-child(6) { animation-delay: .5s; }
+  @keyframes hop { 30% { transform: translateY(-6px); } 60% { transform: none; } }
+
+  /* ---------- result document ---------- */
+  #result { display: none; padding: 8px 16px 80px; }
+  .doc-wrap { max-width: 860px; margin: 0 auto; }
+  .toolbar { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 18px; }
+  .toolbar .primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .doc-title {
+    font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 28px;
+    outline: none;
+  }
+  .doc-title .when { color: var(--ink-3); font-weight: 700; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: flex-start; gap: 14px; padding: 22px 26px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-head svg { flex: none; margin-top: 4px; }
+  .meeting-title { font-size: 26px; font-weight: 700; line-height: 1.35; outline: none; flex: 1; }
+  .tabs { display: flex; gap: 6px; padding: 18px 22px 0; }
+  .tab {
+    border: 0; background: none; padding: 10px 18px; border-radius: 999px;
+    font-size: 15px; color: var(--ink-2); display: flex; align-items: center; gap: 6px;
+  }
+  .tab.active { background: #f1efec; color: var(--ink); font-weight: 600; }
+  .panel { display: none; padding: 18px 30px 34px; outline: none; min-height: 240px; line-height: 1.75; font-size: 17px; }
+  .panel.active { display: block; }
+  .panel h2 { font-size: 22px; font-weight: 700; margin: 26px 0 14px; }
+  .panel h2:first-child { margin-top: 6px; }
+  .panel ul { margin: 0 0 8px; padding-left: 26px; }
+  .panel li { margin: 6px 0; padding-left: 4px; }
+  .panel li::marker { color: var(--ink); }
+  .panel p { margin: 6px 0; }
+  .panel[data-empty="true"]::before { content: attr(data-placeholder); color: var(--ink-3); }
+  #panel-transcript { font-size: 15px; color: var(--ink-2); white-space: pre-wrap; }
+  .edit-hint { color: var(--ink-3); font-size: 13px; text-align: center; margin-top: 14px; }
+
+  /* ---------- settings modal ---------- */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(31,29,27,.35);
+    display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10;
+  }
+  .modal {
+    background: var(--surface); border-radius: 18px; padding: 26px; width: min(480px, 100%);
+    box-shadow: 0 24px 60px rgba(0,0,0,.2);
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 18px; }
+  .modal p { margin: 0 0 16px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+  .modal label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+  .modal input, .modal textarea {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    font-family: inherit; font-size: 14px;
+  }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .modal a { color: var(--ink); }
+
+  /* ---------- mascot animation ---------- */
+  #mascot { overflow: visible; }
+  #mascot .body-g { transform-box: fill-box; transform-origin: 50% 100%; animation: bob 3.2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-5px) scale(1.015, .985); } }
+  #mascot .pupil { transition: transform .32s cubic-bezier(.4,1.4,.6,1); }
+  #mascot .eye { transform-box: fill-box; transform-origin: center; transition: transform .09s; }
+  #mascot .eye.blink { transform: scaleY(.08); }
+
+  /* 데구르르 구르기 */
+  #mascot .roller, #mascot .shadow-g { transform-box: view-box; transform-origin: 150px 160px; }
+  #mascot.rolling .roller { animation: roll 2.8s cubic-bezier(.45,.05,.35,1) both; }
+  #mascot.rolling .shadow-g { animation: rollShadow 2.8s cubic-bezier(.45,.05,.35,1) both; }
+  #mascot.rolling.right .roller { animation-name: rollR; }
+  #mascot.rolling.right .shadow-g { animation-name: rollShadowR; }
+  @keyframes roll {
+    0% { transform: none; }
+    40% { transform: translateX(-90px) rotate(-310deg); }
+    48% { transform: translateX(-84px) rotate(-290deg); }
+    56% { transform: translateX(-88px) rotate(-298deg); }
+    100% { transform: translateX(0) rotate(0); }
+  }
+  @keyframes rollR {
+    0% { transform: none; }
+    40% { transform: translateX(90px) rotate(310deg); }
+    48% { transform: translateX(84px) rotate(290deg); }
+    56% { transform: translateX(88px) rotate(298deg); }
+    100% { transform: translateX(0) rotate(0); }
+  }
+  @keyframes rollShadow { 40%, 56% { transform: translateX(-88px); } }
+  @keyframes rollShadowR { 40%, 56% { transform: translateX(88px); } }
+
+  #mascot .glasses { opacity: 0; transform: translateY(-14px); transition: opacity .6s, transform .6s; }
+  #mascot .desk { opacity: 0; transform: translateY(16px); transition: opacity .6s, transform .6s; }
+  #mascot .thinking { opacity: 0; transition: opacity .3s; }
+
+  #mascot.writing .glasses, #mascot.writing .desk { opacity: 1; transform: none; }
+  #mascot.writing .body-g { animation: lean 4s ease-in-out infinite; }
+  @keyframes lean { 0%,100% { transform: rotate(1.5deg); } 50% { transform: rotate(3deg) translateY(2px); } }
+  #mascot.writing .pencil { animation: scribble 4.4s ease-in-out infinite; }
+  @keyframes scribble {
+    0%   { transform: translate(0,0) rotate(0); }
+    10%  { transform: translate(6px,-3px) rotate(-4deg); }
+    20%  { transform: translate(12px,1px) rotate(2deg); }
+    30%  { transform: translate(18px,-3px) rotate(-4deg); }
+    40%  { transform: translate(24px,1px) rotate(2deg); }
+    50%  { transform: translate(30px,-2px) rotate(-3deg); }
+    60%  { transform: translate(4px,10px) rotate(0); }
+    70%  { transform: translate(12px,8px) rotate(-4deg); }
+    80%  { transform: translate(20px,11px) rotate(2deg); }
+    90%  { transform: translate(28px,8px) rotate(-4deg); }
+    100% { transform: translate(0,0) rotate(0); }
+  }
+  #mascot .ink { stroke-dasharray: 44; stroke-dashoffset: 44; }
+  #mascot.writing .ink1 { animation: ink 8.8s linear infinite; }
+  #mascot.writing .ink2 { animation: ink 8.8s linear infinite 4.4s; }
+  @keyframes ink { 0% { stroke-dashoffset: 44; } 45%,90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+  #mascot.writing .brow { opacity: 1; }
+  #mascot .brow { opacity: 0; transition: opacity .3s; }
+
+  #mascot.thinking-mode .thinking { opacity: 1; }
+  #mascot.thinking-mode .thinking circle { animation: dot 1.2s infinite; }
+  #mascot.thinking-mode .thinking circle:nth-child(2) { animation-delay: .2s; }
+  #mascot.thinking-mode .thinking circle:nth-child(3) { animation-delay: .4s; }
+  @keyframes dot { 50% { opacity: .2; } }
+  #mascot.thinking-mode .body-g { animation: bob 1.2s ease-in-out infinite; }
+
+  @media (max-width: 600px) {
+    header { padding: 16px; }
+    .doc-title { font-size: 28px; }
+    .meeting-title { font-size: 20px; }
+    .panel { padding: 14px 18px 26px; font-size: 16px; }
+    .tab { padding: 8px 12px; font-size: 14px; }
+  }
+
+  /* PDF export */
+  .pdf-root { background: #fff; padding: 8px 4px; font-family: "Pretendard", sans-serif; color: #1f1d1b; }
+  .pdf-root .card { border-radius: 14px; }
+  .pdf-root .panel { display: block !important; min-height: 0; }
+  .pdf-root .pdf-label { font-size: 13px; font-weight: 700; color: #a8a29e; letter-spacing: .08em; padding: 18px 30px 0; }
+  .pdf-root li, .pdf-root h2 { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><b>●</b> 396 MEETING RECORDING</div>
+  <button class="icon-btn" id="btn-settings">⚙︎ 설정</button>
+</header>
+
+<!-- ================= STAGE ================= -->
+<section id="stage">
+  <svg id="mascot" viewBox="0 0 300 300" aria-label="GIROGI">
+    <defs>
+      <radialGradient id="ballGrad" cx="38%" cy="32%" r="75%">
+        <stop offset="0" stop-color="#ff8a5c"/>
+        <stop offset=".55" stop-color="#ff5a36"/>
+        <stop offset="1" stop-color="#e0401f"/>
+      </radialGradient>
+    </defs>
+
+    <!-- shadow -->
+    <g class="shadow-g">
+      <ellipse cx="150" cy="268" rx="74" ry="9" fill="#000" opacity=".08"/>
+    </g>
+
+    <g class="roller">
+      <g class="body-g">
+        <!-- round body -->
+        <circle cx="150" cy="160" r="104" fill="url(#ballGrad)"/>
+        <ellipse cx="112" cy="104" rx="30" ry="16" fill="#fff" opacity=".16" transform="rotate(-28 112 104)"/>
+
+        <!-- cheeks -->
+        <ellipse cx="96" cy="190" rx="14" ry="8" fill="#ffb0a0" opacity=".5"/>
+        <ellipse cx="204" cy="190" rx="14" ry="8" fill="#ffb0a0" opacity=".5"/>
+
+        <!-- brows (focus mode) -->
+        <path class="brow" d="M106 121 L134 123" stroke="#1b1412" stroke-width="5" stroke-linecap="round"/>
+        <path class="brow" d="M194 121 L166 123" stroke="#1b1412" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- eyes: 까만 눈 전체가 몸 위에서 굴러다님 -->
+        <g class="eye" id="eyeL">
+          <g class="pupil">
+            <circle cx="120" cy="156" r="21" fill="#1b1412"/>
+            <circle cx="113" cy="148" r="6" fill="#fff"/>
+          </g>
+        </g>
+        <g class="eye" id="eyeR">
+          <g class="pupil">
+            <circle cx="180" cy="156" r="21" fill="#1b1412"/>
+            <circle cx="173" cy="148" r="6" fill="#fff"/>
+          </g>
+        </g>
+
+        <!-- glasses -->
+        <g class="glasses">
+          <circle cx="120" cy="156" r="31" fill="#bfe3ff" fill-opacity=".12" stroke="#2b2622" stroke-width="5"/>
+          <circle cx="180" cy="156" r="31" fill="#bfe3ff" fill-opacity=".12" stroke="#2b2622" stroke-width="5"/>
+          <path d="M149 152 Q150 146 151 152" stroke="#2b2622" stroke-width="5" fill="none"/>
+          <path d="M89 150 L60 142" stroke="#2b2622" stroke-width="5" stroke-linecap="round"/>
+          <path d="M211 150 L240 142" stroke="#2b2622" stroke-width="5" stroke-linecap="round"/>
+          <path d="M102 140 L112 134" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+          <path d="M162 140 L172 134" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- desk: notepad + pencil -->
+    <g class="desk">
+      <rect x="92" y="222" width="122" height="62" rx="8" fill="#fffdf6" stroke="#2b2622" stroke-width="3.5" transform="rotate(-4 153 253)"/>
+      <g transform="rotate(-4 153 253)">
+        <rect x="92" y="222" width="122" height="10" rx="4" fill="#e5484d"/>
+        <path class="ink ink1" d="M106 246 q6 -5 11 0 t11 0 t11 0 t11 0" stroke="#2b2622" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path class="ink ink2" d="M106 262 q6 -5 11 0 t11 0 t11 0 t11 0" stroke="#2b2622" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M106 276 L196 276" stroke="#e7e1d6" stroke-width="2"/>
+      </g>
+      <g class="pencil">
+        <g transform="translate(166 216) rotate(35)">
+          <rect x="-5" y="0" width="10" height="40" rx="2" fill="#f5c542" stroke="#2b2622" stroke-width="2.5"/>
+          <rect x="-5" y="-6" width="10" height="7" rx="2" fill="#f08a7a" stroke="#2b2622" stroke-width="2.5"/>
+          <path d="M-5 40 L0 51 L5 40 Z" fill="#f3d9b1" stroke="#2b2622" stroke-width="2.5" stroke-linejoin="round"/>
+        </g>
+        <!-- little arm -->
+        <ellipse cx="172" cy="226" rx="13" ry="10" fill="#ff5a36" stroke="#e0401f" stroke-width="2"/>
+      </g>
+    </g>
+
+    <!-- thinking dots -->
+    <g class="thinking" fill="#2b2622">
+      <circle cx="232" cy="66" r="6"/>
+      <circle cx="252" cy="52" r="6"/>
+      <circle cx="272" cy="38" r="6"/>
+    </g>
+  </svg>
+
+  <div class="name">GIROGI</div>
+  <div class="status" id="status">안녕하세요! 회의를 시작하면 제가 받아 적을게요.</div>
+  <div class="timer" id="timer"><span class="dot"></span><span id="timer-text">00:00:00</span></div>
+  <div class="meter" id="meter"><i></i></div>
+  <div class="processing-text" id="processing" style="display:none"><span>정</span><span>리</span><span>중</span><span>.</span><span>.</span><span>.</span></div>
+
+  <div class="participants" id="participants">
+    <label for="p-input">오늘의 참가자</label>
+    <div class="chips" id="chips"><input id="p-input" placeholder="이름 입력 후 Enter" autocomplete="off"></div>
+    <div class="p-hint">Enter나 쉼표로 여러 명을 추가할 수 있어요. 참가자를 1명 이상 적으면 시작할 수 있어요.</div>
+  </div>
+
+  <button class="main-btn" id="btn-main" disabled>MEETING START</button>
+  <div class="live" id="live"></div>
+  <div class="alert" id="alert"></div>
+  <div class="restore" id="restore" style="display:none">
+    지난번에 정리되지 않은 녹음 기록이 있어요. <button id="btn-restore">이어서 정리하기</button> · <button id="btn-discard">지우기</button>
+  </div>
+</section>
+
+<!-- ================= RESULT ================= -->
+<section id="result">
+  <div class="doc-wrap">
+    <div class="toolbar">
+      <button class="icon-btn" id="btn-new">＋ 새 회의</button>
+      <button class="icon-btn" id="btn-audio">녹음 파일 저장</button>
+      <button class="icon-btn" id="btn-resummarize">다시 요약</button>
+      <label class="icon-btn" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="pdf-transcript"> 받아쓰기 포함
+      </label>
+      <button class="icon-btn primary" id="btn-pdf">PDF 추출</button>
+    </div>
+
+    <div id="doc">
+      <h1 class="doc-title" contenteditable="true" spellcheck="false">
+        <span id="doc-category">회의록</span> <span class="when" id="doc-when"></span>
+      </h1>
+      <div class="card">
+        <div class="card-head">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2b2622" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          <div style="flex:1">
+            <div class="meeting-title" id="meeting-title" contenteditable="true" spellcheck="false">회의</div>
+            <div class="attendees" id="attendees" contenteditable="true" spellcheck="false"></div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="summary">☰ 요약</button>
+          <button class="tab" data-tab="memo">✎ 메모</button>
+          <button class="tab" data-tab="transcript">🎙 받아쓰기</button>
+        </div>
+        <div class="panel active" id="panel-summary" contenteditable="true" spellcheck="false"></div>
+        <div class="panel" id="panel-memo" contenteditable="true" spellcheck="false" data-placeholder="자유롭게 메모를 남겨보세요."></div>
+        <div class="panel" id="panel-transcript" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </div>
+    <div class="edit-hint">문서의 아무 곳이나 클릭해서 바로 수정할 수 있어요. 변경 내용은 자동 저장됩니다.</div>
+  </div>
+</section>
+
+<!-- ================= SETTINGS ================= -->
+<div class="modal-bg" id="settings">
+  <div class="modal">
+    <h3>요약 설정</h3>
+    <p>
+      요약은 Google Gemini 무료 API를 사용해요. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서
+      무료 API 키를 발급받아 붙여넣어 주세요. 키는 이 브라우저에만 저장됩니다.
+    </p>
+    <label for="set-key">Gemini API 키</label>
+    <input id="set-key" type="password" placeholder="AIza..." autocomplete="off">
+    <label for="set-model">모델</label>
+    <input id="set-model" placeholder="gemini-2.5-flash">
+    <label for="set-terms">추가 용어 (쉼표로 구분 · 원두명, 농장명, 직원 이름 등)</label>
+    <textarea id="set-terms" placeholder="예: 초르소, 게뎁, 트위드 블렌드, 진화님"></textarea>
+    <div class="row">
+      <button class="icon-btn" id="set-cancel">취소</button>
+      <button class="icon-btn primary" id="set-save" style="background:#2b2622;color:#fff">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   396 MEETING RECORDING
+   - 받아쓰기: 브라우저 Web Speech API (ko-KR, 무료)
+   - 요약: Google Gemini API 무료 등급 + 커피 용어집 프롬프트
+   - 백업: MediaRecorder로 원본 오디오 보관
+   ============================================================ */
+
+const $ = (s) => document.querySelector(s);
+const LS = {
+  settings: '396rec.settings',
+  draft: '396rec.draft',
+  doc: '396rec.doc',
+};
+
+// ---------- coffee glossary ----------
+const COFFEE_TERMS = [
+  // 가공
+  '워시드', '내추럴', '허니 프로세스', '화이트 허니', '옐로 허니', '레드 허니', '블랙 허니', '무산소 발효(애너로빅)',
+  '카보닉 매서레이션', '더블 퍼먼테이션', '웻 헐링', '인퓨즈드',
+  // 산지·품종
+  '에티오피아', '예가체프', '구지', '시다모', '함벨라', '게뎁', '초르소', '코체레', '케냐', 'AA', 'AB', 'SL28', 'SL34', '루이루 11', '바티안',
+  '콜롬비아', '우일라', '나리뇨', '과테말라', '안티구아', '우에우에테낭고', '코스타리카', '타라주', '파나마', '보케테', '게이샤(게샤)',
+  '브라질', '세하도', '술 데 미나스', '부르봉', '티피카', '카투라', '카투아이', '파카마라', '버번', '핑크 버번', '시드라', '74110', '74158',
+  '스페셜티', '싱글 오리진', '블렌드', '마이크로랏', '뉴크롭', '패스트크롭',
+  // 로스팅
+  '로스팅', '로스터', '프로밧', '기센', '스트롱홀드', '투입 온도', '터닝 포인트', '옐로잉', '마이야르', '1차 크랙', '2차 크랙',
+  '디벨롭먼트 타임', 'DTR', 'RoR', '배출(드롭)', '댐퍼', '화력', '열량', '로스팅 프로파일', '아그트론', '라이트 로스팅', '미디엄 로스팅',
+  '다크 로스팅', '시나몬', '시티', '풀시티', '언더 디벨롭', '베이크드', '스코칭', '티핑', '디개싱', '레스팅', '에이징', '프레시함', '로스팅 후 N일차',
+  // 추출
+  '추출', '브루잉', '핸드드립', '푸어오버', 'V60', '칼리타 웨이브', '오리가미', '케멕스', '에어로프레스', '프렌치프레스', '클레버', '사이폰', '콜드브루',
+  '에스프레소', '머신', '그룹헤드', '포터필터', '바스켓', '도징', '도징량', '레시피', '비율(1:15 등)', '분쇄도', '그라인더', 'EK43', '미분',
+  '탬핑', '디스트리뷰션', 'WDT', '프리인퓨전', '블루밍(뜸)', '푸어링', '바이패스', '추출 수율', 'TDS', '굴절계', '과소 추출(언더)', '과다 추출(오버)',
+  '채널링', '샷', '리스트레토', '룽고', '크레마', '스티밍', '라떼', '플랫화이트', '물(경도, 알칼리도, ppm)', '정수 필터', '보일러 온도',
+  // 관능
+  '커핑', 'SCA', 'CVA', '향미 프로필', '아로마', '프래그런스', '플레이버', '애프터테이스트', '산미', '단맛', '쓴맛', '바디', '농도감', '마우스필',
+  '밸런스', '클린컵', '클린함', '복합미', '주시함', '텍스처', '피니시', '떫은맛', '디펙트', '어둡다/밝다', '플로럴', '시트러스', '베리', '스톤프루트',
+  '캐러멜', '초콜릿', '너티', '티 라이크', '자스민', '베르가못',
+];
+
+const SYSTEM_PROMPT = `당신은 스페셜티 커피 로스터리의 회의 서기입니다. 커피 생두, 가공 방식, 로스팅, 추출, 관능 평가(커핑) 분야의 전문 용어에 능숙합니다.
+
+입력은 브라우저 음성 인식으로 받아쓴 한국어 회의 원문입니다. 음성 인식 특성상 커피 용어가 잘못 받아써졌을 수 있습니다.
+예) "와시드/워시트" → "워시드", "네추럴" → "내추럴", "예가 체프/예가채프" → "예가체프", "티디에스" → "TDS", "알오알" → "RoR",
+"일차 크랙" → "1차 크랙", "디벨롭 먼트" → "디벨롭먼트", "아그트롱" → "아그트론", "언더 추출" → "과소 추출(언더)".
+문맥과 아래 용어집을 근거로 바로잡아 요약하세요. 확실하지 않은 숫자나 이름은 지어내지 마세요.
+
+[커피 용어집]
+{{TERMS}}
+
+작성 규칙:
+- 한국어, 간결한 개조식 문장(~함, ~됨, ~확인 등의 명사형 종결).
+- 원문에 없는 사실은 추가하지 않음.
+- 원두/주제별로 sections를 나누고, 원두 이름이 나오면 heading에 "날짜/산지/농장/가공" 등을 원문에 있는 만큼 포함.
+- 결정 사항과 해야 할 일은 actionItems에 담음(없으면 빈 배열). 담당자가 언급되면 "이름: 할 일" 형식.
+- 참가자 이름은 입력에 주어진 표기를 그대로 사용(음성 인식이 이름을 다르게 받아썼으면 참가자 명단 표기로 바로잡음).
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "category": "문서 상단 큰 제목용 2~6자 분류 (예: 커피 동향, 로스팅 회의, 메뉴 개발)",
+  "title": "회의 제목 (예: 동향 세션 - 에티오피아 워시드 & 내추럴 테이스팅)",
+  "summary": ["전체 요약 3~6개"],
+  "sections": [{ "heading": "소제목", "bullets": ["내용"] }],
+  "actionItems": ["할 일"],
+  "termFixes": [{ "wrong": "잘못 받아쓴 표현", "right": "바른 용어" }]
+}`;
+
+// ---------- state ----------
+const state = {
+  mode: 'idle',           // idle | recording | processing | result
+  segments: [],           // {t: seconds, text}
+  startedAt: 0,
+  stream: null,
+  recorder: null,
+  audioChunks: [],
+  audioBlob: null,
+  recognition: null,
+  wakeLock: null,
+  audioCtx: null,
+  timerId: null,
+  meetingDate: null,
+  participants: safeParse(localStorage.getItem('396rec.participants')).list || [],
+};
+
+const settings = Object.assign(
+  { key: '', model: 'gemini-2.5-flash', terms: '' },
+  safeParse(localStorage.getItem(LS.settings))
+);
+
+function safeParse(s) { try { return JSON.parse(s) || {}; } catch { return {}; } }
+function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+// ============================================================
+// Mascot (GIROGI)
+// ============================================================
+const mascot = $('#mascot');
+const pupils = [...mascot.querySelectorAll('.pupil')];
+const eyes = [...mascot.querySelectorAll('.eye')];
+let lookTimer = null;
+let mouseAt = 0;
+
+function look(x, y, ms) {
+  pupils.forEach((p) => {
+    if (ms != null) p.style.transitionDuration = ms + 'ms';
+    p.style.transform = `translate(${x}px, ${y}px)`;
+  });
+}
+
+function blink() {
+  eyes.forEach((e) => e.classList.add('blink'));
+  setTimeout(() => eyes.forEach((e) => e.classList.remove('blink')), 120);
+}
+(function blinkLoop() {
+  setTimeout(() => { blink(); if (Math.random() < .2) setTimeout(blink, 220); blinkLoop(); }, 2200 + Math.random() * 3000);
+})();
+
+// 눈알 굴리기: 한 바퀴 빙글
+function rollEyes() {
+  const steps = 14, r = 8;
+  for (let i = 0; i <= steps; i++) {
+    setTimeout(() => {
+      const a = -Math.PI / 2 + (i / steps) * Math.PI * 2;
+      look(Math.cos(a) * r, Math.sin(a) * r, 70);
+    }, i * 70);
+  }
+  setTimeout(() => look(0, 0, 320), steps * 70 + 120);
+}
+
+function idleLook() {
+  clearTimeout(lookTimer);
+  if (state.mode === 'recording') return writingLook();
+  if (state.mode === 'processing') { look(5, -8, 320); lookTimer = setTimeout(idleLook, 1500); return; }
+  if (Date.now() - mouseAt > 1500 && !mascot.classList.contains('rolling')) {
+    const dice = Math.random();
+    if (dice < .08) rollBody();
+    else if (dice < .22) rollEyes();
+    else {
+      const a = Math.random() * Math.PI * 2, r = Math.random() * 9;
+      look(Math.cos(a) * r, Math.sin(a) * r * .8, 320);
+    }
+  }
+  lookTimer = setTimeout(idleLook, 1200 + Math.random() * 1800);
+}
+
+// 몸을 데구르르 굴렸다가 제자리로
+function rollBody() {
+  if (state.mode !== 'idle' || mascot.classList.contains('rolling')) return;
+  mascot.classList.toggle('right', Math.random() < .5);
+  mascot.classList.add('rolling');
+  look(0, 0, 200);
+  setTimeout(() => mascot.classList.remove('rolling'), 2900);
+}
+
+// 받아 적는 중: 메모장을 보며 왼→오 시선 이동
+let writeStep = 0;
+function writingLook() {
+  clearTimeout(lookTimer);
+  if (state.mode !== 'recording') return idleLook();
+  const seq = [[-3, 8], [1, 8], [5, 9], [8, 9], [-3, 10], [2, 10], [6, 10]];
+  if (writeStep % 17 === 16) look(0, -2, 700);            // 가끔 고개 들어 화자 확인
+  else { const [x, y] = seq[writeStep % seq.length]; look(x, y, 800); }
+  writeStep++;
+  lookTimer = setTimeout(writingLook, 1000);
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (state.mode !== 'idle') return;
+  const rect = mascot.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height * .54;
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 300);
+  mouseAt = Date.now();
+  look((dx / d) * 9 * k, (dy / d) * 8 * k, 160);
+});
+mascot.addEventListener('click', () => (Math.random() < .5 ? rollBody() : rollEyes()));
+
+function setMascot(mode) {
+  if (mode !== 'idle') mascot.classList.remove('rolling');
+  mascot.classList.toggle('writing', mode === 'recording');
+  mascot.classList.toggle('thinking-mode', mode === 'processing');
+  idleLook();
+}
+idleLook();
+
+// ============================================================
+// Microphone check
+// ============================================================
+async function checkMicrophone() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error('이 브라우저는 마이크 사용을 지원하지 않아요. 최신 Chrome에서 열어주세요.');
+  }
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  if (!devices.some((d) => d.kind === 'audioinput')) {
+    throw new Error('연결된 마이크가 없어요. 마이크를 연결한 뒤 다시 시도해주세요.');
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+  } catch (e) {
+    if (e.name === 'NotAllowedError') throw new Error('마이크 권한이 거부되었어요. 주소창 왼쪽 자물쇠 아이콘에서 마이크를 "허용"으로 바꿔주세요.');
+    if (e.name === 'NotFoundError') throw new Error('마이크를 찾을 수 없어요. 연결 상태를 확인해주세요.');
+    if (e.name === 'NotReadableError') throw new Error('다른 프로그램이 마이크를 사용 중이에요. (Zoom, 녹음 앱 등) 종료 후 다시 시도해주세요.');
+    throw new Error('마이크를 여는 중 문제가 생겼어요: ' + e.message);
+  }
+  const track = stream.getAudioTracks()[0];
+  if (!track || track.readyState !== 'live') throw new Error('마이크 신호가 들어오지 않아요.');
+  return stream;
+}
+
+function startMeter(stream) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaStreamSource(stream);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const bar = $('#meter i');
+    state.audioCtx = ctx;
+    (function tick() {
+      if (state.mode !== 'recording') return;
+      an.getByteTimeDomainData(buf);
+      let peak = 0;
+      for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
+      bar.style.width = Math.min(100, (peak / 64) * 100) + '%';
+      requestAnimationFrame(tick);
+    })();
+  } catch {}
+}
+
+// ============================================================
+// Recording
+// ============================================================
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+async function startMeeting() {
+  setAlert('');
+  commitParticipantInput();
+  if (!state.participants.length) {
+    setAlert('오늘의 참가자를 먼저 적어주세요.');
+    $('#p-input').focus();
+    return;
+  }
+  if (!SR) {
+    setAlert('이 브라우저는 한국어 실시간 받아쓰기를 지원하지 않아요. Google Chrome(데스크톱)에서 열어주세요.');
+    return;
+  }
+  $('#btn-main').disabled = true;
+  setStatus('마이크 연결을 확인하는 중…');
+  try {
+    state.stream = await checkMicrophone();
+  } catch (e) {
+    $('#btn-main').disabled = false;
+    setStatus('마이크 연결을 확인해주세요.');
+    setAlert(e.message);
+    return;
+  }
+
+  state.segments = [];
+  state.audioChunks = [];
+  state.audioBlob = null;
+  state.startedAt = Date.now();
+  state.meetingDate = new Date();
+  state.mode = 'recording';
+  $('#restore').style.display = 'none';
+  $('#participants').style.display = 'none';
+  store('396rec.participants', { list: state.participants });
+
+  // 마이크가 뽑히면 알려주기
+  state.stream.getAudioTracks()[0].onended = () => {
+    if (state.mode === 'recording') setAlert('⚠︎ 마이크 연결이 끊어졌어요! 다시 연결한 뒤 MEETING FINISH 후 새로 시작해주세요.');
+  };
+
+  // 원본 오디오 백업 (2시간 ≈ 30MB 내외)
+  try {
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((m) => MediaRecorder.isTypeSupported(m));
+    state.recorder = new MediaRecorder(state.stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined);
+    state.recorder.ondataavailable = (e) => e.data.size && state.audioChunks.push(e.data);
+    state.recorder.start(10000);
+  } catch { state.recorder = null; }
+
+  startRecognition();
+  startMeter(state.stream);
+  requestWakeLock();
+
+  $('#btn-main').disabled = false;
+  $('#btn-main').textContent = 'MEETING FINISH';
+  $('#btn-main').classList.add('finish');
+  $('#timer').style.display = 'block';
+  $('#meter').style.display = 'block';
+  $('#live').style.display = 'block';
+  $('#live').innerHTML = '<span class="interim">말씀을 시작하면 여기에 받아 적혀요…</span>';
+  setStatus('GIROGI가 집중해서 받아 적고 있어요.');
+  setMascot('recording');
+  tickTimer();
+  state.timerId = setInterval(tickTimer, 1000);
+}
+
+function startRecognition() {
+  const rec = new SR();
+  rec.lang = 'ko-KR';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) addSegment(r[0].transcript);
+      else interim += r[0].transcript;
+    }
+    renderLive(interim);
+  };
+  rec.onerror = (e) => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      setAlert('음성 인식 권한이 없어요. 마이크 권한을 허용해주세요.');
+    } else if (e.error === 'network') {
+      setAlert('네트워크가 불안정해 받아쓰기가 잠시 멈췄어요. 자동으로 다시 연결합니다. (원본 오디오는 계속 녹음 중)');
+    } else if (e.error === 'audio-capture') {
+      setAlert('마이크 입력을 받을 수 없어요. 연결을 확인해주세요.');
+    }
+  };
+  // Chrome은 일정 시간마다 인식을 끊으므로, 회의가 끝날 때까지 계속 재시작해서 2시간 이상 유지
+  rec.onend = () => {
+    if (state.mode !== 'recording') return;
+    setTimeout(() => {
+      if (state.mode !== 'recording') return;
+      try { rec.start(); } catch { startRecognition(); }
+    }, 300);
+  };
+  rec.onstart = () => { if ($('#alert').textContent.includes('네트워크')) setAlert(''); };
+  state.recognition = rec;
+  try { rec.start(); } catch {}
+}
+
+function addSegment(text) {
+  text = text.trim();
+  if (!text) return;
+  state.segments.push({ t: Math.round((Date.now() - state.startedAt) / 1000), text });
+  store(LS.draft, { date: state.meetingDate, segments: state.segments, participants: state.participants });
+}
+
+function renderLive(interim) {
+  const last = state.segments.slice(-3).map((s) => escapeHtml(s.text)).join(' ');
+  const live = $('#live');
+  live.innerHTML = last + (interim ? ` <span class="interim">${escapeHtml(interim)}</span>` : '');
+  live.scrollTop = live.scrollHeight;
+}
+
+function tickTimer() {
+  const sec = Math.floor((Date.now() - state.startedAt) / 1000);
+  $('#timer-text').textContent = fmtTime(sec, true);
+  if (sec === 2 * 3600) setStatus('2시간이 지났어요. 계속 받아 적는 중이에요!');
+}
+
+async function requestWakeLock() {
+  try {
+    state.wakeLock = await navigator.wakeLock?.request('screen');
+  } catch {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.mode === 'recording') requestWakeLock();
+});
+window.addEventListener('beforeunload', (e) => {
+  if (state.mode === 'recording' || state.mode === 'processing') { e.preventDefault(); e.returnValue = ''; }
+});
+
+async function finishMeeting() {
+  state.mode = 'processing';
+  clearInterval(state.timerId);
+  try { state.recognition?.stop(); } catch {}
+  await stopRecorder();
+  state.stream?.getTracks().forEach((t) => t.stop());
+  try { state.audioCtx?.close(); } catch {}
+  try { state.wakeLock?.release(); } catch {}
+
+  $('#btn-main').style.display = 'none';
+  $('#timer').style.display = 'none';
+  $('#meter').style.display = 'none';
+  $('#live').style.display = 'none';
+  $('#processing').style.display = 'block';
+  setStatus('');
+  setMascot('processing');
+
+  // 마지막 문장이 확정될 시간을 조금 줌
+  await sleep(900);
+  await buildResult();
+}
+
+function stopRecorder() {
+  return new Promise((resolve) => {
+    const r = state.recorder;
+    if (!r || r.state === 'inactive') return resolve();
+    r.onstop = () => {
+      state.audioBlob = new Blob(state.audioChunks, { type: r.mimeType || 'audio/webm' });
+      resolve();
+    };
+    r.stop();
+  });
+}
+
+// ============================================================
+// Summarize (Gemini)
+// ============================================================
+function transcriptText() {
+  return state.segments.map((s) => `[${fmtTime(s.t)}] ${s.text}`).join('\n');
+}
+
+async function summarize(text) {
+  if (!settings.key) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' });
+  const terms = [COFFEE_TERMS.join(', '), settings.terms, state.participants.join(', ')].filter(Boolean).join(', ');
+  const model = (settings.model || 'gemini-2.5-flash').trim();
+  const body = {
+    systemInstruction: { parts: [{ text: SYSTEM_PROMPT.replace('{{TERMS}}', terms) }] },
+    contents: [{ role: 'user', parts: [{ text: `참가자: ${state.participants.join(', ') || '(미입력)'}\n\n회의 받아쓰기 원문:\n\n` + text }] }],
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.3 },
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.key },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || `요약 요청 실패 (${res.status})`);
+  const raw = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
+  return JSON.parse(raw.replace(/^```json\s*|```$/g, ''));
+}
+
+async function buildResult() {
+  const text = transcriptText();
+  let result, note = '';
+  if (!text.trim()) {
+    result = { category: '회의록', title: '회의', summary: ['받아 적힌 내용이 없어요. 마이크 입력과 말소리를 확인해주세요.'], sections: [] };
+  } else {
+    try {
+      result = await summarize(text);
+    } catch (e) {
+      note = e.code === 'NO_KEY'
+        ? '⚙︎ 설정에서 Gemini API 키를 넣고 "다시 요약"을 누르면 자동 요약이 만들어져요. 받아쓰기 원문은 아래 탭에 있어요.'
+        : '요약 중 문제가 생겼어요: ' + e.message + ' — 잠시 후 "다시 요약"을 눌러주세요.';
+      result = { category: '회의록', title: '회의', summary: [note], sections: [] };
+    }
+  }
+  renderResult(result);
+  if (!note) { try { localStorage.removeItem(LS.draft); } catch {} }
+  showResult();
+}
+
+function applyTermFixes(fixes) {
+  if (!Array.isArray(fixes)) return;
+  for (const f of fixes) {
+    if (!f?.wrong || !f?.right || f.wrong === f.right) continue;
+    state.segments.forEach((s) => { s.text = s.text.split(f.wrong).join(f.right); });
+  }
+}
+
+function renderResult(r) {
+  applyTermFixes(r.termFixes);
+  $('#doc-category').textContent = r.category || '회의록';
+  $('#doc-when').textContent = '@' + fmtDate(state.meetingDate || new Date());
+  $('#meeting-title').textContent = r.title || '회의';
+  $('#attendees').innerHTML = state.participants.length
+    ? '<b>참가자</b> · ' + state.participants.map(escapeHtml).join(', ') : '';
+
+  let html = '<h2>요약</h2>' + list(r.summary);
+  for (const s of r.sections || []) html += `<h2>${escapeHtml(s.heading || '')}</h2>` + list(s.bullets);
+  if (r.actionItems?.length) html += '<h2>할 일</h2>' + list(r.actionItems);
+  $('#panel-summary').innerHTML = html;
+
+  $('#panel-transcript').textContent = transcriptText() || '받아 적힌 내용이 없어요.';
+  updateMemoEmpty();
+  saveDoc();
+}
+
+function list(items) {
+  if (!items?.length) return '';
+  return '<ul>' + items.map((t) => `<li>${escapeHtml(String(t))}</li>`).join('') + '</ul>';
+}
+
+function showResult() {
+  state.mode = 'result';
+  $('#stage').style.display = 'none';
+  $('#result').style.display = 'block';
+  setMascot('idle');
+  window.scrollTo(0, 0);
+}
+
+function resetToStage() {
+  state.mode = 'idle';
+  $('#result').style.display = 'none';
+  $('#stage').style.display = 'flex';
+  $('#processing').style.display = 'none';
+  $('#btn-main').style.display = '';
+  $('#participants').style.display = '';
+  renderChips();
+  $('#btn-main').textContent = 'MEETING START';
+  $('#btn-main').classList.remove('finish');
+  setStatus('안녕하세요! 회의를 시작하면 제가 받아 적을게요.');
+  setAlert('');
+  setMascot('idle');
+}
+
+// ============================================================
+// Result page: tabs, editing, autosave
+// ============================================================
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + b.dataset.tab));
+}));
+
+function updateMemoEmpty() {
+  const m = $('#panel-memo');
+  m.dataset.empty = m.textContent.trim() ? 'false' : 'true';
+}
+
+let saveT;
+function saveDoc() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => store(LS.doc, {
+    title: $('.doc-title').innerHTML,
+    meeting: $('#meeting-title').innerHTML,
+    attendees: $('#attendees').innerHTML,
+    participants: state.participants,
+    summary: $('#panel-summary').innerHTML,
+    memo: $('#panel-memo').innerHTML,
+    transcript: $('#panel-transcript').textContent,
+    segments: state.segments,
+    date: state.meetingDate,
+  }), 400);
+}
+$('#doc').addEventListener('input', () => { updateMemoEmpty(); saveDoc(); });
+
+// 붙여넣기는 서식 없이
+$('#doc').addEventListener('paste', (e) => {
+  e.preventDefault();
+  const t = e.clipboardData.getData('text/plain');
+  document.execCommand('insertText', false, t);
+});
+
+// ============================================================
+// PDF export
+// ============================================================
+async function exportPdf() {
+  const btn = $('#btn-pdf');
+  btn.disabled = true; btn.textContent = 'PDF 만드는 중…';
+  try {
+    const root = document.createElement('div');
+    root.className = 'pdf-root';
+    const title = $('.doc-title').cloneNode(true);
+    title.removeAttribute('contenteditable');
+    title.style.fontSize = '30px';
+    root.appendChild(title);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.appendChild($('.card-head').cloneNode(true));
+    const addPanel = (id, label) => {
+      const src = $(id);
+      if (!src.textContent.trim()) return;
+      const lab = document.createElement('div');
+      lab.className = 'pdf-label'; lab.textContent = label;
+      const p = src.cloneNode(true);
+      p.removeAttribute('contenteditable'); p.removeAttribute('id');
+      p.classList.add('active');
+      if (id === '#panel-transcript') { p.style.whiteSpace = 'pre-wrap'; p.style.fontSize = '13px'; }
+      card.append(lab, p);
+    };
+    addPanel('#panel-summary', '요약');
+    addPanel('#panel-memo', '메모');
+    if ($('#pdf-transcript').checked) addPanel('#panel-transcript', '받아쓰기');
+    root.appendChild(card);
+
+    const name = ($('#meeting-title').textContent.trim() || '회의록').replace(/[\\/:*?"<>|]/g, '').slice(0, 60);
+    const d = state.meetingDate || new Date();
+    const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+
+    await html2pdf().set({
+      margin: [12, 12, 14, 12],
+      filename: `${stamp}_${name}.pdf`,
+      image: { type: 'jpeg', quality: 0.96 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'], avoid: ['li', 'h2'] },
+    }).from(root).save();
+  } catch (e) {
+    alert('PDF를 만드는 중 문제가 생겼어요: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'PDF 추출';
+  }
+}
+
+// ============================================================
+// Misc UI
+// ============================================================
+function setStatus(t) { $('#status').textContent = t; }
+function setAlert(t) { $('#alert').textContent = t; }
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtTime(sec, long) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return long || h ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+function fmtDate(d) {
+  d = new Date(d);
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const h = d.getHours(), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${days[d.getDay()]}요일 ${ap} ${h12}:${pad(d.getMinutes())}`;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+$('#btn-main').addEventListener('click', () => {
+  if (state.mode === 'idle') startMeeting();
+  else if (state.mode === 'recording') finishMeeting();
+});
+$('#btn-pdf').addEventListener('click', exportPdf);
+$('#btn-new').addEventListener('click', () => {
+  if (confirm('새 회의를 시작할까요? 현재 문서는 PDF로 저장해두세요.')) {
+    try { localStorage.removeItem(LS.doc); } catch {}
+    resetToStage();
+  }
+});
+$('#btn-audio').addEventListener('click', () => {
+  if (!state.audioBlob) return alert('저장된 녹음 파일이 없어요. (페이지를 새로고침하면 오디오는 사라져요)');
+  const a = document.createElement('a');
+  const ext = state.audioBlob.type.includes('mp4') ? 'm4a' : 'webm';
+  a.href = URL.createObjectURL(state.audioBlob);
+  a.download = `회의녹음_${fmtDate(state.meetingDate).replace(/[: ]/g, '_')}.${ext}`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+$('#btn-resummarize').addEventListener('click', async () => {
+  if (!state.segments.length) return alert('요약할 받아쓰기 내용이 없어요.');
+  if (!settings.key) return openSettings();
+  const b = $('#btn-resummarize');
+  b.disabled = true; b.textContent = '정리중…';
+  try {
+    const memo = $('#panel-memo').innerHTML;
+    renderResult(await summarize(transcriptText()));
+    $('#panel-memo').innerHTML = memo; updateMemoEmpty(); saveDoc();
+    try { localStorage.removeItem(LS.draft); } catch {}
+  } catch (e) { alert('요약 실패: ' + e.message); }
+  b.disabled = false; b.textContent = '다시 요약';
+});
+
+// ============================================================
+// Participants
+// ============================================================
+const pInput = $('#p-input');
+function renderChips() {
+  const box = $('#chips');
+  box.querySelectorAll('.chip').forEach((c) => c.remove());
+  state.participants.forEach((name, i) => {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.innerHTML = `${escapeHtml(name)}<button type="button" aria-label="${escapeHtml(name)} 삭제">×</button>`;
+    c.querySelector('button').onclick = () => { state.participants.splice(i, 1); renderChips(); };
+    box.insertBefore(c, pInput);
+  });
+  pInput.placeholder = state.participants.length ? '참가자 추가' : '이름 입력 후 Enter';
+  if (state.mode === 'idle') $('#btn-main').disabled = !state.participants.length && !pInput.value.trim();
+}
+function commitParticipantInput() {
+  const names = pInput.value.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+  names.forEach((n) => { if (!state.participants.includes(n)) state.participants.push(n); });
+  pInput.value = '';
+  renderChips();
+}
+pInput.addEventListener('keydown', (e) => {
+  if (e.isComposing) return;   // 한글 조합 중 Enter 무시
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    commitParticipantInput();
+  } else if (e.key === 'Backspace' && !pInput.value && state.participants.length) {
+    state.participants.pop();
+    renderChips();
+  }
+});
+pInput.addEventListener('input', () => {
+  if (/[,，、]/.test(pInput.value)) commitParticipantInput();
+  else renderChips();
+});
+pInput.addEventListener('blur', () => { if (pInput.value.trim()) commitParticipantInput(); });
+$('#chips').addEventListener('click', () => pInput.focus());
+renderChips();
+
+// settings
+function openSettings() {
+  $('#set-key').value = settings.key;
+  $('#set-model').value = settings.model;
+  $('#set-terms').value = settings.terms;
+  $('#settings').style.display = 'flex';
+}
+$('#btn-settings').addEventListener('click', openSettings);
+$('#set-cancel').addEventListener('click', () => $('#settings').style.display = 'none');
+$('#set-save').addEventListener('click', () => {
+  settings.key = $('#set-key').value.trim();
+  settings.model = $('#set-model').value.trim() || 'gemini-2.5-flash';
+  settings.terms = $('#set-terms').value.trim();
+  store(LS.settings, settings);
+  $('#settings').style.display = 'none';
+});
+
+// 복구: 녹음 중 창이 닫혔던 경우 / 정리된 문서가 남아있는 경우
+(function restore() {
+  const doc = safeParse(localStorage.getItem(LS.doc));
+  if (doc.summary) {
+    $('.doc-title').innerHTML = doc.title;
+    $('#meeting-title').innerHTML = doc.meeting;
+    $('#attendees').innerHTML = doc.attendees || '';
+    state.participants = doc.participants || state.participants;
+    $('#panel-summary').innerHTML = doc.summary;
+    $('#panel-memo').innerHTML = doc.memo || '';
+    $('#panel-transcript').textContent = doc.transcript || '';
+    state.segments = doc.segments || [];
+    state.meetingDate = doc.date ? new Date(doc.date) : new Date();
+    updateMemoEmpty();
+    showResult();
+    return;
+  }
+  const draft = safeParse(localStorage.getItem(LS.draft));
+  if (draft.segments?.length) {
+    $('#restore').style.display = 'block';
+    $('#btn-restore').onclick = async () => {
+      state.segments = draft.segments;
+      state.meetingDate = new Date(draft.date);
+      state.participants = draft.participants || state.participants;
+      $('#participants').style.display = 'none';
+      state.mode = 'processing';
+      $('#restore').style.display = 'none';
+      $('#btn-main').style.display = 'none';
+      $('#processing').style.display = 'block';
+      setStatus('');
+      setMascot('processing');
+      await buildResult();
+    };
+    $('#btn-discard').onclick = () => {
+      try { localStorage.removeItem(LS.draft); } catch {}
+      $('#restore').style.display = 'none';
+    };
+  }
+})();
+</script>
+</body>
+</html>
