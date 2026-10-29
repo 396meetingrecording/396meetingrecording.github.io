@@ -165,6 +165,7 @@
   .modal {
     background: var(--surface); border-radius: 18px; padding: 26px; width: min(480px, 100%);
     box-shadow: 0 24px 60px rgba(0,0,0,.2);
+    max-height: calc(100vh - 32px); overflow-y: auto;
   }
   .modal h3 { margin: 0 0 6px; font-size: 18px; }
   .modal p { margin: 0 0 16px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
@@ -176,6 +177,9 @@
   .modal textarea { min-height: 80px; resize: vertical; }
   .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
   .modal a { color: var(--ink); }
+  .set-msg { font-size: 13px; line-height: 1.5; margin-top: 14px; min-height: 0; }
+  .set-msg.ok { color: #2f8a3e; }
+  .set-msg.err { color: var(--rec); }
 
   /* ---------- mascot animation ---------- */
   #mascot { overflow: visible; }
@@ -421,10 +425,12 @@
     <label for="set-key">Gemini API 키</label>
     <input id="set-key" type="password" placeholder="AIza..." autocomplete="off">
     <label for="set-model">모델</label>
-    <input id="set-model" placeholder="gemini-2.5-flash">
+    <input id="set-model" placeholder="비워두면 자동 선택 (권장)">
     <label for="set-terms">추가 용어 (쉼표로 구분 · 원두명, 농장명, 직원 이름 등)</label>
     <textarea id="set-terms" placeholder="예: 초르소, 게뎁, 트위드 블렌드, 진화님"></textarea>
+    <div class="set-msg" id="set-msg"></div>
     <div class="row">
+      <button class="icon-btn" id="set-test" style="margin-right:auto">연결 테스트</button>
       <button class="icon-btn" id="set-cancel">취소</button>
       <button class="icon-btn primary" id="set-save" style="background:#2b2622;color:#fff">저장</button>
     </div>
@@ -516,7 +522,7 @@ const state = {
 };
 
 const settings = Object.assign(
-  { key: '', model: 'gemini-2.5-flash', terms: '' },
+  { key: '', model: '', terms: '' },
   safeParse(localStorage.getItem(LS.settings))
 );
 
@@ -842,24 +848,98 @@ function transcriptText() {
   return state.segments.map((s) => `[${fmtTime(s.t)}] ${s.text}`).join('\n');
 }
 
+// Google 쪽 모델은 주기적으로 바뀌므로, 안 되는 모델은 건너뛰고 쓸 수 있는 무료 모델을 자동으로 찾음
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta';
+const MODEL_CANDIDATES = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'];
+
+function geminiError(res, data) {
+  const msg = data?.error?.message || '';
+  const e = new Error(msg || `요청 실패 (${res.status})`);
+  if (/API key not valid|API_KEY_INVALID|API key expired/i.test(msg)) {
+    e.code = 'KEY';
+    e.message = 'API 키가 올바르지 않아요. AI Studio에서 키 전체(AIza…로 시작)를 다시 복사해 붙여넣어 주세요.';
+  } else if (res.status === 404 || /not found|no longer available|not supported|is not available|deprecated/i.test(msg)) {
+    e.code = 'MODEL';
+  } else if (res.status === 429) {
+    e.code = 'QUOTA';
+    e.message = '무료 사용량을 잠시 초과했어요. 1~2분 뒤 다시 시도해주세요.';
+  } else if (res.status === 403) {
+    e.code = 'KEY';
+    e.message = '이 키로는 Gemini를 쓸 수 없어요. AI Studio(aistudio.google.com)에서 만든 키인지, 키에 웹사이트·API 사용 제한이 걸려 있지 않은지 확인해주세요. (' + msg + ')';
+  } else if (res.status === 400 && /location|region|country/i.test(msg)) {
+    e.code = 'REGION';
+    e.message = '현재 접속한 지역에서는 Gemini 무료 API를 쓸 수 없어요. VPN을 쓰고 있다면 꺼주세요.';
+  } else if (res.status >= 500) {
+    e.code = 'SERVER';
+    e.message = 'Google 서버가 잠시 바빠요. 잠시 후 다시 시도해주세요.';
+  }
+  return e;
+}
+
+async function geminiFetch(path, key, body) {
+  let res;
+  try {
+    res = await fetch(GEMINI_API + path, {
+      method: body ? 'POST' : 'GET',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw Object.assign(new Error('Google 서버에 연결하지 못했어요. 인터넷 연결이나 광고 차단 확장 프로그램을 확인해주세요.'), { code: 'NET' });
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw geminiError(res, data);
+  return data;
+}
+
+async function listFlashModels(key) {
+  const data = await geminiFetch('/models?pageSize=200', key);
+  return (data.models || [])
+    .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+    .map((m) => m.name.replace(/^models\//, ''))
+    .filter((n) => /flash/.test(n) && !/image|tts|live|audio|embed|transcribe/.test(n))
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+}
+
+async function callGemini(body, key = settings.key) {
+  const tried = new Set();
+  const queue = [settings.model, ...MODEL_CANDIDATES].filter(Boolean);
+  let lastErr = null, listed = false;
+  for (;;) {
+    const model = queue.find((m) => !tried.has(m));
+    if (!model) {
+      if (listed) break;
+      listed = true;
+      queue.push(...await listFlashModels(key));
+      continue;
+    }
+    tried.add(model);
+    try {
+      const data = await geminiFetch(`/models/${encodeURIComponent(model)}:generateContent`, key, body);
+      if (settings.model !== model) { settings.model = model; store(LS.settings, settings); }
+      return { data, model };
+    } catch (e) {
+      if (e.code !== 'MODEL' && e.code !== 'QUOTA') throw e;
+      if (!lastErr || e.code === 'QUOTA') lastErr = e;
+    }
+  }
+  throw lastErr?.code === 'QUOTA' ? lastErr : new Error('이 키로 쓸 수 있는 Gemini 모델을 찾지 못했어요. AI Studio에서 키를 새로 만들어 보세요.');
+}
+
 async function summarize(text) {
   if (!settings.key) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' });
   const terms = [COFFEE_TERMS.join(', '), settings.terms, state.participants.join(', ')].filter(Boolean).join(', ');
-  const model = (settings.model || 'gemini-2.5-flash').trim();
-  const body = {
+  const { data } = await callGemini({
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT.replace('{{TERMS}}', terms) }] },
     contents: [{ role: 'user', parts: [{ text: `참가자: ${state.participants.join(', ') || '(미입력)'}\n\n회의 받아쓰기 원문:\n\n` + text }] }],
-    generationConfig: { responseMimeType: 'application/json', temperature: 0.3 },
-  };
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.key },
-    body: JSON.stringify(body),
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.3, maxOutputTokens: 8192 },
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error?.message || `요약 요청 실패 (${res.status})`);
   const raw = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
-  return JSON.parse(raw.replace(/^```json\s*|```$/g, ''));
+  try {
+    return JSON.parse(raw.replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, ''));
+  } catch {
+    throw new Error('요약 결과를 읽지 못했어요. "다시 요약"을 한 번 더 눌러주세요.');
+  }
 }
 
 async function buildResult() {
@@ -878,6 +958,7 @@ async function buildResult() {
     }
   }
   renderResult(result);
+  state.summaryFailed = !!note;
   if (!note) { try { localStorage.removeItem(LS.draft); } catch {} }
   showResult();
 }
@@ -1066,7 +1147,8 @@ $('#btn-audio').addEventListener('click', () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
-$('#btn-resummarize').addEventListener('click', async () => {
+$('#btn-resummarize').addEventListener('click', () => resummarize());
+async function resummarize() {
   if (!state.segments.length) return alert('요약할 받아쓰기 내용이 없어요.');
   if (!settings.key) return openSettings();
   const b = $('#btn-resummarize');
@@ -1075,10 +1157,11 @@ $('#btn-resummarize').addEventListener('click', async () => {
     const memo = $('#panel-memo').innerHTML;
     renderResult(await summarize(transcriptText()));
     $('#panel-memo').innerHTML = memo; updateMemoEmpty(); saveDoc();
+    state.summaryFailed = false;
     try { localStorage.removeItem(LS.draft); } catch {}
   } catch (e) { alert('요약 실패: ' + e.message); }
   b.disabled = false; b.textContent = '다시 요약';
-});
+}
 
 // ============================================================
 // Participants
@@ -1126,16 +1209,40 @@ function openSettings() {
   $('#set-key').value = settings.key;
   $('#set-model').value = settings.model;
   $('#set-terms').value = settings.terms;
+  $('#set-msg').textContent = '';
   $('#settings').style.display = 'flex';
 }
 $('#btn-settings').addEventListener('click', openSettings);
 $('#set-cancel').addEventListener('click', () => $('#settings').style.display = 'none');
 $('#set-save').addEventListener('click', () => {
   settings.key = $('#set-key').value.trim();
-  settings.model = $('#set-model').value.trim() || 'gemini-2.5-flash';
+  settings.model = $('#set-model').value.trim();
   settings.terms = $('#set-terms').value.trim();
   store(LS.settings, settings);
   $('#settings').style.display = 'none';
+  // 키 없이 끝난 회의가 있으면 바로 요약
+  if (state.mode === 'result' && state.summaryFailed && settings.key && state.segments.length) resummarize();
+});
+$('#set-test').addEventListener('click', async () => {
+  const key = $('#set-key').value.trim();
+  const msg = $('#set-msg');
+  msg.className = 'set-msg';
+  if (!key) { msg.classList.add('err'); msg.textContent = 'API 키를 먼저 붙여넣어 주세요.'; return; }
+  const b = $('#set-test');
+  b.disabled = true; msg.textContent = '확인하는 중…';
+  const prevModel = settings.model;
+  settings.model = $('#set-model').value.trim();
+  try {
+    const { model } = await callGemini({ contents: [{ role: 'user', parts: [{ text: '"OK" 한 단어로만 답해줘.' }] }], generationConfig: { maxOutputTokens: 10 } }, key);
+    $('#set-model').value = model;
+    msg.classList.add('ok');
+    msg.textContent = `✓ 연결됐어요! (사용 모델: ${model}) 저장을 눌러주세요.`;
+  } catch (e) {
+    settings.model = prevModel;
+    msg.classList.add('err');
+    msg.textContent = '✕ ' + e.message;
+  }
+  b.disabled = false;
 });
 
 // 복구: 녹음 중 창이 닫혔던 경우 / 정리된 문서가 남아있는 경우
